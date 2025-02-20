@@ -1,10 +1,7 @@
-'use client'
-
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
-import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react";
 import Image from "next/image";
+import { HeaderActions } from "./header-actions";
 
 export function Header() {
     return <div className="bg-slate-900 py-4">
@@ -13,17 +10,11 @@ export function Header() {
                 <Image src='/brain.jpg' alt='2ndBrain Logo' width={50} height={50} className="rounded"/>
                 SecondBrain
             </div>
-        <div>
+        <div className="flex gap-6 items-center">
+            
+            <ModeToggle />
+           <HeaderActions />
 
-            <Unauthenticated>
-                <SignInButton />
-                </Unauthenticated>
-                <Authenticated>
-                <div className="flex gap-6">
-                    <ModeToggle />
-                    <UserButton />
-                </div>
-            </Authenticated>
         </div>
         </div>
     </div>
