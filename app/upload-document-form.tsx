@@ -17,16 +17,20 @@ import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react";
 import { LoadingButton } from "@/components/loading-button";
+import { Id } from "@/convex/_generated/dataModel";
 
 
 const formSchema = z.object({
   title: z.string().min(1).max(250),
+  file: z.instanceof(File),
 })
 export default function UploadDocumentForm({
     onUpload,
 }: {
     onUpload: () => void;
 }) {
+
+    const generateUploadUrl = useMutation(api.documents.generateUploadUrl);
 
     const documents = useQuery(api.documents.getDocuments);
     const createDocument = useMutation(api.documents.createDocument);
@@ -39,7 +43,17 @@ export default function UploadDocumentForm({
       })
 
       async function onSubmit(values: z.infer<typeof formSchema>) {
-        await createDocument(values);
+        const url = await generateUploadUrl();
+        const result = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": values.file.type },
+            body: values.file,
+          });
+        const { storageId } = await result.json();
+        await createDocument({
+            title: values.title,
+            fileId: storageId as Id<"_storage">,
+        });
         onUpload();
       }
 
@@ -59,6 +73,27 @@ export default function UploadDocumentForm({
                 </FormItem>
               )}
             />
+
+        <FormField
+              control={form.control}
+              name="file"
+              render={({ field:  {value, onChange, ...fieldProps} }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input {...fieldProps} type="file"
+                    accept=".txt,.xml,.doc"
+                    onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        onChange(file);
+                    }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <LoadingButton 
             isLoading={form.formState.isSubmitting} 
             loadingText="Uploading...">Upload</LoadingButton>

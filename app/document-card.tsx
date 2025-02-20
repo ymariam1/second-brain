@@ -8,6 +8,7 @@ import {
     CardTitle,
   } from "@/components/ui/card"
 import { Doc } from "@/convex/_generated/dataModel";
+import { Eye, Link } from "lucide-react";
 
 export default function DocumentCard({document}: {document: Doc<"documents">}) {
 
@@ -21,7 +22,11 @@ export default function DocumentCard({document}: {document: Doc<"documents">}) {
         <p>Card Content</p>
       </CardContent>
       <CardFooter>
-      <Button variant={"secondary"}>View</Button>
+      <Button className="flex items-center gap-2">
+        <Link href={'/documents/${document._id}'}>
+          <Eye className="w-4 h-4"/> View
+        </Link>
+        </Button>
       </CardFooter>
     </Card>
     );
