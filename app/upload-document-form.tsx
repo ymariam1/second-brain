@@ -23,7 +23,8 @@ import { Id } from "@/convex/_generated/dataModel";
 const formSchema = z.object({
   title: z.string().min(1).max(250),
   file: z.instanceof(File),
-})
+});
+
 export default function UploadDocumentForm({
     onUpload,
 }: {
@@ -32,7 +33,6 @@ export default function UploadDocumentForm({
 
     const generateUploadUrl = useMutation(api.documents.generateUploadUrl);
 
-    const documents = useQuery(api.documents.getDocuments);
     const createDocument = useMutation(api.documents.createDocument);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -79,7 +79,7 @@ export default function UploadDocumentForm({
               name="file"
               render={({ field:  {value, onChange, ...fieldProps} }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>file</FormLabel>
                   <FormControl>
                     <Input {...fieldProps} type="file"
                     accept=".txt,.xml,.doc"
@@ -99,5 +99,5 @@ export default function UploadDocumentForm({
             loadingText="Uploading...">Upload</LoadingButton>
           </form>
         </Form>
-      )
+      );
 }

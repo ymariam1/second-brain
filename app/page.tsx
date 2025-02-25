@@ -12,8 +12,7 @@ export default function Home() {
   const createDocument = useMutation(api.documents.createDocument);
 
   return (
-    
-      
+  
       <main className="p-24 space-y-8">
         <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold">My Documents</h1>
