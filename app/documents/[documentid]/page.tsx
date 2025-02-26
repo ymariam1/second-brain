@@ -6,6 +6,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import ChatPanel from "./chat-panel";
 import { use } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 type Params = {
@@ -25,11 +26,24 @@ export default function DocumentPage({
   if (!document) {
     return <div>You don't have access to this document</div>;
   }
-
   return (
     
       
       <main className="p-24 space-y-8">
+        {!document && 
+        <div className="space-y-8">
+            <div>
+                <Skeleton className="h-[40px] w-[500px]"/>
+            </div>
+
+            <div className="flex gap-2">
+                <Skeleton className="h-[40px] w-[80px]"/>
+                <Skeleton className="h-[40px] w-[80px]"/>
+            </div>
+            <Skeleton className="h-[500px]"/>
+         </div>
+         }
+        {document && (<>
         <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold">{document.title}</h1>
 
@@ -53,9 +67,9 @@ export default function DocumentPage({
         />   
                 </TabsContent>
         </Tabs>
-       
-
     </div>
+    </>
+        )}
     </main>
   );
 }

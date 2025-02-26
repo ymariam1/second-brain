@@ -1,4 +1,4 @@
-import { action, internalQuery, mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
+import { action, internalAction, internalMutation, internalQuery, mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import OpenAI from 'openai';
@@ -13,7 +13,7 @@ export const getDocuments = query({
       const userId = (await ctx.auth.getUserIdentity())?.tokenIdentifier;
   
       if (!userId) {
-        return [];
+        return undefined;
       }
   
       return await ctx.db
@@ -74,11 +74,18 @@ export const createDocument = mutation({
         if (!userId) {
             throw new ConvexError('Not authenticated')
         }
-        await ctx.db.insert('documents', {
+        const documentId = await ctx.db.insert('documents', {
             title: args.title,
             tokenIdentifier: userId,
             fileId: args.fileId,
+            description: "",
         })
+        await ctx.scheduler.runAfter(0, internal.documents.fillInDescription, 
+            {
+                fileId: args.fileId,
+                documentId
+            }
+        );
     },
 })
 
@@ -90,6 +97,63 @@ export const hasAccessToDocumentQuery = internalQuery({
         return await hasAccessToDocument(ctx, args.documentId);
     }
 })
+
+export const fillInDescription = internalAction({
+    args: {
+        fileId: v.id("_storage"),
+        documentId: v.id('documents'),
+    },
+    async handler(ctx, args) {
+        const file = await ctx.storage.get(args.fileId);
+
+        if (!file) {
+            throw new ConvexError('File not found')
+        }
+        
+        const text = await file.text();
+        const chatCompletion: OpenAI.Chat.Completions.ChatCompletion = await client.chat.completions.create({
+            messages: [
+                { 
+                    role: 'system', 
+                    content: ` 
+                You are a highly knowledgeable and reliable assistant managing files in a "second brain" system.
+                You are given the full content of a text file.
+                Read it carefully and generate a concise, one-sentence preview that captures the main topic or essence of the document.
+                If the content does not allow for a clear preview, state that the document lacks sufficient information.
+                    
+                Content of the text file:
+            ${text}
+            `,        
+                },
+                { 
+                    role: 'user',
+                    content: `Please generate a 1 sentence description for this doucment`,
+
+                }],
+            model: 'gpt-4o',
+          });
+
+          const response = chatCompletion.choices[0].message.content ?? 'could not figure out a description for this document';
+
+          await ctx.runMutation(internal.documents.updateDocumentDescription, {
+            documentId: args.documentId, 
+            description: response,
+          });
+
+    },
+}) 
+
+export const updateDocumentDescription = internalMutation({ 
+args: {
+    documentId: v.id("documents"),
+    description: v.string(),
+},
+    async handler(ctx, args) {
+        await ctx.db.patch(args.documentId, {
+            description: args.description,
+        });
+     },
+});
 
 export const askQuestion = action({
     args: {
