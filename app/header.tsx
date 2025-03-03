@@ -16,7 +16,7 @@ export function Header() {
             </Link>
 
             <div>
-                <nav><Link href="/" className="hover:text-slate-300">Documents</Link></nav>
+                <nav><Link href="/dashboard/" className="hover:text-slate-300">Documents</Link></nav>
             </div>
         </div>
 
