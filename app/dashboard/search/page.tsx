@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SearchForm } from "./search-form"
+import { SearchForm } from "./search-form";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { FileIcon, NotebookPen } from "lucide-react";
@@ -65,6 +65,7 @@ export default function SearchPage() {
           if (result.type === "notes") {
             return (
               <SearchResult
+                key={result.record._id}
                 type="note"
                 url={`/dashboard/notes/${result.record._id}`}
                 score={result.score}
@@ -74,6 +75,7 @@ export default function SearchPage() {
           } else {
             return (
               <SearchResult
+                key={result.record._id}
                 type="document"
                 url={`/dashboard/documents/${result.record._id}`}
                 score={result.score}
